@@ -182,6 +182,16 @@ app.get('/', (req, res) => {
             attribution: '© Google Images'
         });
 
+        var googleDefault = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            attribution: '© Google Maps'
+        });
+
+        var darkMap = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 20,
+            attribution: '© OpenStreetMap contributors © CARTO'
+        });
+
         var map = L.map('map', {
             layers: [osmLayer]
         }).setView([0, 0], 2);
@@ -189,7 +199,9 @@ app.get('/', (req, res) => {
         // Add Map type selector control
         var baseMaps = {
             "OSM Default": osmLayer,
-            "Google Satellite": googleSat
+            "Google Satellite": googleSat,
+            "Google Default": googleDefault,
+            "Dark Map": darkMap
         };
         L.control.layers(baseMaps).addTo(map);
 
