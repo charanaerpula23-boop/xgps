@@ -45,7 +45,7 @@ app.post('/location', (req, res) => {
         } else {
             const lastHist = history[history.length - 1];
             const distFromLastHist = getDistanceInMeters(lastHist.latitude, lastHist.longitude, latitude, longitude);
-            if (distFromLastHist >= 50) addToHistory = true;
+            if (distFromLastHist >= 2) addToHistory = true;
         }
         
         if (addToHistory) history.push(newLocation);
