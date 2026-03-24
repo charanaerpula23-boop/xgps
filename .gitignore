@@ -13,3 +13,6 @@ out.txt
 gradle_output.txt
 node_modules/
 server/node_modules/
+server/
+*.py
+*.txt
