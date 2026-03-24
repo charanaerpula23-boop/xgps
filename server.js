@@ -55,7 +55,7 @@ app.post('/location', (req, res) => {
         const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
         locationHistory[devId] = history.filter(loc => loc.timestamp >= twentyFourHoursAgo);
 
-        console.log(\[\] [\] GPS Update \t Lat: \ \t Lng: \ \t Speed: \ km/h\);
+        console.log(`[${newLocation.receivedAt}] [${devId}] GPS Update \t Lat: ${latitude} \t Lng: ${longitude} \t Speed: ${speed.toFixed(1)} km/h`);
         res.status(200).json({ success: true, message: "Location received successfully" });
     } else {
         res.status(400).json({ success: false, message: "Invalid payload: missing latitude or longitude" });
@@ -91,7 +91,7 @@ app.post('/config', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send(\<!DOCTYPE html>
+    res.send(`<!DOCTYPE html>
 <html>
 <head>
     <title>Live GPS Tracker</title>
@@ -227,7 +227,7 @@ app.get('/', (req, res) => {
         updateLocation(); syncConfig();
     </script>
 </body>
-</html>\);
+</html>`);
 });
 
-app.listen(PORT, () => console.log(\Server is running on port \\));
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
