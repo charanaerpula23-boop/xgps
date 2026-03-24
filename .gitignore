@@ -1,0 +1,15 @@
+*.iml
+.gradle/
+.idea/
+/local.properties
+/build/
+/app/build/
+.DS_Store
+.externalNativeBuild
+.cxx
+err.txt
+out.txt
+*.py
+gradle_output.txt
+node_modules/
+server/node_modules/
