@@ -73,28 +73,73 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 
 
 fun createCustomMarker(context: Context, color: Int, label: String): Drawable {
-    val bitmap = Bitmap.createBitmap(80, 100, Bitmap.Config.ARGB_8888)
+    val bitmapWidth = 300
+    val bitmapHeight = 160
+    val bitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        this.color = color
-    }
-    val path = android.graphics.Path()
-    path.moveTo(40f, 100f)
-    path.lineTo(20f, 60f)
-    path.arcTo(android.graphics.RectF(0f, 0f, 80f, 80f), 150f, 240f)
-    path.close()
-    canvas.drawPath(path, paint)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     
-    paint.style = Paint.Style.STROKE
+    val text = if (label.length > 15) label.substring(0, 15) else label
+
+    paint.textSize = 28f
+    paint.typeface = android.graphics.Typeface.DEFAULT_BOLD
+    paint.textAlign = Paint.Align.CENTER
+    val textBounds = android.graphics.Rect()
+    paint.getTextBounds(text, 0, text.length, textBounds)
+
+    val paddingX = 24f
+    val paddingY = 16f
+    var bubbleWidth = textBounds.width() + paddingX * 2
+    if (bubbleWidth < 80f) bubbleWidth = 80f
+    val bubbleHeight = textBounds.height() + paddingY * 2
+    
+    val centerX = bitmapWidth / 2f
+    val bubbleLeft = centerX - bubbleWidth / 2f
+    val bubbleTop = 0f
+    val bubbleRight = centerX + bubbleWidth / 2f
+    val bubbleBottom = bubbleTop + bubbleHeight
+
+    // Draw bubble background
+    val bgRect = android.graphics.RectF(bubbleLeft, bubbleTop, bubbleRight, bubbleBottom)
+    paint.style = Paint.Style.FILL
     paint.color = AndroidColor.WHITE
-    paint.strokeWidth = 3f
+    canvas.drawRoundRect(bgRect, 16f, 16f, paint)
+
+    // Draw bubble border
+    paint.style = Paint.Style.STROKE
+    paint.color = color
+    paint.strokeWidth = 4f
+    canvas.drawRoundRect(bgRect, 16f, 16f, paint)
+
+    // Draw text
+    paint.style = Paint.Style.FILL
+    paint.color = AndroidColor.DKGRAY
+    val textY = bubbleBottom - paddingY + 2f
+    canvas.drawText(text, centerX, textY, paint)
+
+    // Pin drawing
+    val pinRadius = 24f
+    val pinCenterY = bubbleBottom + 10f + pinRadius
+    val pinTipY = bitmapHeight.toFloat()
+    
+    val path = android.graphics.Path()
+    path.moveTo(centerX, pinTipY)
+    path.lineTo(centerX - pinRadius + 4f, pinCenterY + 12f)
+    path.arcTo(android.graphics.RectF(centerX - pinRadius, pinCenterY - pinRadius, centerX + pinRadius, pinCenterY + pinRadius), 140f, 260f)
+    path.lineTo(centerX, pinTipY)
+    path.close()
+    
+    paint.color = color
+    paint.style = Paint.Style.FILL
+    canvas.drawPath(path, paint)
+
+    paint.color = AndroidColor.WHITE
+    paint.style = Paint.Style.STROKE
+    paint.strokeWidth = 4f
     canvas.drawPath(path, paint)
 
     paint.style = Paint.Style.FILL
-    paint.textSize = 28f
-    paint.textAlign = Paint.Align.CENTER
-    val title = if (label.length >= 2) label.substring(0, 2).uppercase() else label.uppercase()
-    canvas.drawText(title, 40f, 48f, paint)
+    canvas.drawCircle(centerX, pinCenterY, 8f, paint)
 
     return BitmapDrawable(context.resources, bitmap)
 }
@@ -243,12 +288,20 @@ fun MainScreen() {
                             if (historyResponse.isSuccessful) {
                                 val allHistory = historyResponse.body() ?: emptyMap()
                                 allHistory.forEach { (id, points) ->
-                                    val geoPoints = points.map { GeoPoint(it.latitude, it.longitude) }
+                                    val geoPoints = points.map { GeoPoint(it.latitude, it.longitude) }.toMutableList()
+                                    val latestLoc = locations[id]
+                                    if (latestLoc != null) {
+                                        geoPoints.add(GeoPoint(latestLoc.latitude, latestLoc.longitude))
+                                    }
                                     var polyline = devicePolylines[id]
                                     if (polyline == null) {
                                         polyline = Polyline(mapReference).apply {
-                                            outlinePaint.color = getColorForDevice(id)
-                                            outlinePaint.strokeWidth = 10f
+                                            val baseColor = getColorForDevice(id)
+                                            outlinePaint.color = AndroidColor.argb(180, AndroidColor.red(baseColor), AndroidColor.green(baseColor), AndroidColor.blue(baseColor))
+                                            outlinePaint.strokeWidth = 15f
+                                            outlinePaint.strokeCap = Paint.Cap.ROUND
+                                            outlinePaint.strokeJoin = Paint.Join.ROUND
+                                            outlinePaint.isAntiAlias = true
                                             if (mapReference!!.overlays.isNotEmpty()) {
                                                 mapReference!!.overlays.add(0, this) 
                                             } else {
